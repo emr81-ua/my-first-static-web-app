@@ -1,17 +1,103 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css">
-  <title>Vanilla JavaScript App</title>
+    <title>Microsoft Cognitive Services Speech SDK JavaScript Quickstart</title>
+    <meta charset="utf-8" />
 </head>
+<body style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:13px;">
+    <!-- <uidiv> -->
+    <div id="warning">
+        <h1 style="font-weight:500;">Speech Recognition Speech SDK not found (microsoft.cognitiveservices.speech.sdk.bundle.js missing).</h1>
+    </div>
 
-<body>
-  <main>
-    <h1>Vanilla JavaScript App</h1>
-  </main>
+    <div id="content" style="display:none">
+        <table width="100%">
+            <tr>
+                <td></td>
+                <td><h1 style="font-weight:500;">Microsoft Cognitive Services Speech SDK JavaScript Quickstart</h1></td>
+            </tr>
+            <!-- Predefined Subscription Key and Region -->
+            <!-- Hidden Subscription Key and Region Inputs -->
+            <tr style="display:none;">
+                <td align="right"><a href="https://docs.microsoft.com/azure/cognitive-services/speech-service/get-started" target="_blank">Subscription</a>:</td>
+                <td><input id="subscriptionKey" type="text" size="40" value="subscription"></td>
+            </tr>
+            <tr style="display:none;">
+                <td align="right">Region</td>
+                <td><input id="serviceRegion" type="text" size="40" value="YourServiceRegion"></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><button id="startRecognizeOnceAsyncButton">Start recognition</button></td>
+            </tr>
+            <tr>
+                <td align="right" valign="top">Results</td>
+                <td><textarea id="phraseDiv" style="display: inline-block;width:500px;height:200px"></textarea></td>
+            </tr>
+        </table>
+    </div>
+    <!-- </uidiv> -->
+    <!-- <speechsdkref> -->
+    <!-- Speech SDK reference sdk. -->
+    <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+    <!-- </speechsdkref> -->
+    <!-- <quickstartcode> -->
+    <!-- Speech SDK USAGE -->
+    <script>
+        // Predefined subscription key and region
+        const predefinedSubscriptionKey = "51a62e70850c47a0a38001dd4cd8019d";
+        const predefinedServiceRegion = "westeurope";
+
+        // status fields and start button in UI
+        var phraseDiv;
+        var startRecognizeOnceAsyncButton;
+
+        // subscription key and region for speech services.
+        var SpeechSDK;
+        var recognizer;
+
+        document.addEventListener("DOMContentLoaded", function () {
+            startRecognizeOnceAsyncButton = document.getElementById("startRecognizeOnceAsyncButton");
+            phraseDiv = document.getElementById("phraseDiv");
+
+            startRecognizeOnceAsyncButton.addEventListener("click", function () {
+                startRecognizeOnceAsyncButton.disabled = true;
+                phraseDiv.innerHTML = "";
+
+                var speechConfig = SpeechSDK.SpeechConfig.fromSubscription(predefinedSubscriptionKey, predefinedServiceRegion);
+
+                speechConfig.speechRecognitionLanguage = "es-ES";
+                var audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+                recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+
+                recognizer.recognizeOnceAsync(
+                    function (result) {
+                        startRecognizeOnceAsyncButton.disabled = false;
+                        phraseDiv.innerHTML += result.text;
+                        window.console.log(result);
+
+                        recognizer.close();
+                        recognizer = undefined;
+                    },
+                    function (err) {
+                        startRecognizeOnceAsyncButton.disabled = false;
+                        phraseDiv.innerHTML += err;
+                        window.console.log(err);
+
+                        recognizer.close();
+                        recognizer = undefined;
+                    });
+            });
+
+            if (!!window.SpeechSDK) {
+                SpeechSDK = window.SpeechSDK;
+                startRecognizeOnceAsyncButton.disabled = false;
+
+                document.getElementById('content').style.display = 'block';
+                document.getElementById('warning').style.display = 'none';
+            }
+        });
+    </script>
+    <!-- </quickstartcode> -->
 </body>
-
 </html>
