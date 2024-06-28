@@ -5,7 +5,6 @@
     <meta charset="utf-8" />
 </head>
 <body style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:13px;">
-    <!-- <uidiv> -->
     <div id="warning">
         <h1 style="font-weight:500;">Speech Recognition Speech SDK not found (microsoft.cognitiveservices.speech.sdk.bundle.js missing).</h1>
     </div>
@@ -36,13 +35,8 @@
             </tr>
         </table>
     </div>
-    <!-- </uidiv> -->
-    <!-- <speechsdkref> -->
-    <!-- Speech SDK reference sdk. -->
+
     <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
-    <!-- </speechsdkref> -->
-    <!-- <quickstartcode> -->
-    <!-- Speech SDK USAGE -->
     <script>
         // Predefined subscription key and region
         const predefinedSubscriptionKey = "51a62e70850c47a0a38001dd4cd8019d";
@@ -64,28 +58,46 @@
                 startRecognizeOnceAsyncButton.disabled = true;
                 phraseDiv.innerHTML = "";
 
+                // Text-to-Speech
                 var speechConfig = SpeechSDK.SpeechConfig.fromSubscription(predefinedSubscriptionKey, predefinedServiceRegion);
+                var audioConfig = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
+                var synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, audioConfig);
 
-                speechConfig.speechRecognitionLanguage = "es-ES";
-                var audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-                recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
-
-                recognizer.recognizeOnceAsync(
+                synthesizer.speakTextAsync("Dígame el número de la parte frontal de su tarjeta",
                     function (result) {
-                        startRecognizeOnceAsyncButton.disabled = false;
-                        phraseDiv.innerHTML += result.text;
-                        window.console.log(result);
+                        synthesizer.close();
+                        synthesizer = undefined;
 
-                        recognizer.close();
-                        recognizer = undefined;
+                        // Wait for 3 seconds before starting speech recognition
+                        setTimeout(function () {
+                            // Speech-to-Text
+                            speechConfig.speechRecognitionLanguage = "es-ES";
+                            audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+                            recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+
+                            recognizer.recognizeOnceAsync(
+                                function (result) {
+                                    startRecognizeOnceAsyncButton.disabled = false;
+                                    phraseDiv.innerHTML += result.text;
+                                    window.console.log(result);
+
+                                    recognizer.close();
+                                    recognizer = undefined;
+                                },
+                                function (err) {
+                                    startRecognizeOnceAsyncButton.disabled = false;
+                                    phraseDiv.innerHTML += err;
+                                    window.console.log(err);
+
+                                    recognizer.close();
+                                    recognizer = undefined;
+                                });
+                        }, 3000); // 3000 milliseconds = 3 seconds
                     },
                     function (err) {
-                        startRecognizeOnceAsyncButton.disabled = false;
-                        phraseDiv.innerHTML += err;
                         window.console.log(err);
-
-                        recognizer.close();
-                        recognizer = undefined;
+                        synthesizer.close();
+                        synthesizer = undefined;
                     });
             });
 
@@ -98,6 +110,5 @@
             }
         });
     </script>
-    <!-- </quickstartcode> -->
 </body>
 </html>
