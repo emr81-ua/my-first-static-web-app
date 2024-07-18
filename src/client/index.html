@@ -1,1 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Speech service con SDK de js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="container">
+        <div id="warning">
+            <h1>Speech Recognition Speech SDK not found (microsoft.cognitiveservices.speech.sdk.bundle.js missing).</h1>
+        </div>
+
+        <div id="content" style="display:none">
+            <h1>Speech service con SDK de js</h1>
+            <button id="startRecognizeOnceAsyncButton">Empezar conversación</button>
+            <div id="phraseDiv"></div>
+        </div>
+    </div>
+
+    <script>
+        const predefinedServiceRegion = "westeurope";
+        var phraseDiv;
+        var startRecognizeOnceAsyncButton;
+
+        document.addEventListener("DOMContentLoaded", function () {
+            startRecognizeOnceAsyncButton = document.getElementById("startRecognizeOnceAsyncButton");
+            phraseDiv = document.getElementById("phraseDiv");
+
+            startRecognizeOnceAsyncButton.addEventListener("click", async function () {
+                startRecognizeOnceAsyncButton.disabled = true;
+                phraseDiv.innerHTML = "";
+
+                // El robot empieza
+                var robotText = "Dígame el número de la parte frontal de su tarjeta";
+                phraseDiv.innerHTML += `<b>Robot:</b> ${robotText}<br>`;
+
+                // Convertir texto a habla usando el servidor
+                await fetch('/synthesize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: robotText })
+                });
+
+                // Timeout de 3 segundos para empezar a grabar al usuario
+                setTimeout(function () {
+                    phraseDiv.innerHTML += `<i>Escuchando...</i><br>`;
+
+                    // Grabar el audio del usuario
+                    navigator.mediaDevices.getUserMedia({ audio: true })
+                        .then(stream => {
+                            const mediaRecorder = new MediaRecorder(stream);
+                            const audioChunks = [];
+                            mediaRecorder.ondataavailable = event => {
+                                audioChunks.push(event.data);
+                            };
+                            mediaRecorder.onstop = async () => {
+                                const audioBlob = new Blob(audioChunks);
+                                const audioUrl = URL.createObjectURL(audioBlob);
+                                const audio = new Audio(audioUrl);
+                                audio.play();
+
+                                // Enviar el audio al servidor para procesamiento
+                                const formData = new FormData();
+                                formData.append('audio', audioBlob);
+                                const response = await fetch('/recognize', {
+                                    method: 'POST',
+                                    body: formData
+                                });
+                                const result = await response.json();
+                                phraseDiv.innerHTML = phraseDiv.innerHTML.replace(`<i>Escuchando...</i><br>`, '');
+                                phraseDiv.innerHTML += `<b>Humano:</b> ${result.text}<br>`;
+                                startRecognizeOnceAsyncButton.disabled = false;
+                            };
+                            mediaRecorder.start();
+                            setTimeout(() => {
+                                mediaRecorder.stop();
+                            }, 3000); // Grabar por 3 segundos
+                        })
+                        .catch(err => {
+                            phraseDiv.innerHTML += `<b>Error:</b> ${err}<br>`;
+                            startRecognizeOnceAsyncButton.disabled = false;
+                        });
+                }, 3000); // 3000 milliseconds = 3 seconds
+            });
+
+            document.getElementById('content').style.display = 'block';
+            document.getElementById('warning').style.display = 'none';
+        });
+    </script>
+</body>
+</html>
 
