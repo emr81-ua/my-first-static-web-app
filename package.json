@@ -1,7 +1,13 @@
 {
-  "name": "vanilla-basic",
+  "name": "your-app-name",
   "version": "1.0.0",
-  "scripts": { 
-    "start": "sirv ./src public --cors --single --no-clear --port 8000"
+  "description": "Your application description",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "some-other-dependency": "^1.0.0"
   }
 }
