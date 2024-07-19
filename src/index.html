@@ -34,6 +34,7 @@
             "Dígame la fecha de caducidad de su tarjeta"
         ];
         let currentQuestionIndex = 0;
+        let userData = [];
 
         document.addEventListener("DOMContentLoaded", function () {
             startRecognizeOnceAsyncButton = document.getElementById("startRecognizeOnceAsyncButton");
@@ -42,6 +43,8 @@
             startRecognizeOnceAsyncButton.addEventListener("click", function () {
                 startRecognizeOnceAsyncButton.disabled = true;
                 phraseDiv.innerHTML = "";
+                currentQuestionIndex = 0;
+                userData = [];
 
                 // Configurar el SDK de voz
                 var speechConfig = SpeechSDK.SpeechConfig.fromSubscription(predefinedSubscriptionKey, predefinedServiceRegion);
@@ -86,6 +89,9 @@
                                     phraseDiv.innerHTML += `<b>Humano:</b> ${result.text}<br>`;
                                     window.console.log(result);
 
+                                    // Guardar la respuesta del usuario
+                                    userData.push(result.text);
+
                                     recognizer.close();
                                     recognizer = undefined;
 
@@ -114,7 +120,11 @@
                         synthesizer = undefined;
                     });
             } else {
+                // Imprimir los datos recolectados
                 phraseDiv.innerHTML += `<b>Robot:</b> Gracias por su tiempo.<br>`;
+                phraseDiv.innerHTML += `<b>Datos de la tarjeta:</b><br>`;
+                phraseDiv.innerHTML += `<b>Número de la tarjeta:</b> ${userData[0]}<br>`;
+                phraseDiv.innerHTML += `<b>Fecha de caducidad:</b> ${userData[1]}<br>`;
                 startRecognizeOnceAsyncButton.disabled = false;
             }
         }
