@@ -29,6 +29,12 @@
         var SpeechSDK;
         var recognizer;
 
+        const questions = [
+            "Dígame el número de la parte frontal de su tarjeta",
+            "Dígame la fecha de caducidad de su tarjeta"
+        ];
+        let currentQuestionIndex = 0;
+
         document.addEventListener("DOMContentLoaded", function () {
             startRecognizeOnceAsyncButton = document.getElementById("startRecognizeOnceAsyncButton");
             phraseDiv = document.getElementById("phraseDiv");
@@ -37,12 +43,27 @@
                 startRecognizeOnceAsyncButton.disabled = true;
                 phraseDiv.innerHTML = "";
 
-                // El robot empieza
+                // Configurar el SDK de voz
                 var speechConfig = SpeechSDK.SpeechConfig.fromSubscription(predefinedSubscriptionKey, predefinedServiceRegion);
+
+                // Iniciar la conversación
+                askQuestion(speechConfig);
+            });
+
+            if (!!window.SpeechSDK) {
+                SpeechSDK = window.SpeechSDK;
+                startRecognizeOnceAsyncButton.disabled = false;
+
+                document.getElementById('content').style.display = 'block';
+                document.getElementById('warning').style.display = 'none';
+            }
+        });
+
+        function askQuestion(speechConfig) {
+            if (currentQuestionIndex < questions.length) {
                 var audioConfig = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
                 var synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, audioConfig);
-
-                var robotText = "Dígame el número de la parte frontal de su tarjeta";
+                var robotText = questions[currentQuestionIndex];
                 phraseDiv.innerHTML += `<b>Robot:</b> ${robotText}<br>`;
 
                 synthesizer.speakTextAsync(robotText,
@@ -55,27 +76,35 @@
                             phraseDiv.innerHTML += `<i>Escuchando...</i><br>`;
                             // Speech to text
                             speechConfig.speechRecognitionLanguage = "es-ES";
-                            audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+                            var audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
                             recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
 
                             recognizer.recognizeOnceAsync(
                                 function (result) {
                                     startRecognizeOnceAsyncButton.disabled = false;
-                                    phraseDiv.innerHTML = phraseDiv.innerHTML.replace(`<i>Robot is listening...</i><br>`, '');
-                                    phraseDiv.innerHTML += `<b>Human:</b> ${result.text}<br>`;
+                                    phraseDiv.innerHTML = phraseDiv.innerHTML.replace(`<i>Escuchando...</i><br>`, '');
+                                    phraseDiv.innerHTML += `<b>Humano:</b> ${result.text}<br>`;
                                     window.console.log(result);
 
                                     recognizer.close();
                                     recognizer = undefined;
+
+                                    // Hacer la siguiente pregunta
+                                    currentQuestionIndex++;
+                                    askQuestion(speechConfig);
                                 },
                                 function (err) {
                                     startRecognizeOnceAsyncButton.disabled = false;
-                                    phraseDiv.innerHTML = phraseDiv.innerHTML.replace(`<i>Robot is listening...</i><br>`, '');
+                                    phraseDiv.innerHTML = phraseDiv.innerHTML.replace(`<i>Escuchando...</i><br>`, '');
                                     phraseDiv.innerHTML += `<b>Error:</b> ${err}<br>`;
                                     window.console.log(err);
 
                                     recognizer.close();
                                     recognizer = undefined;
+
+                                    // Hacer la siguiente pregunta
+                                    currentQuestionIndex++;
+                                    askQuestion(speechConfig);
                                 });
                         }, 3000); // 3000 milliseconds = 3 seconds
                     },
@@ -84,17 +113,11 @@
                         synthesizer.close();
                         synthesizer = undefined;
                     });
-            });
-
-            if (!!window.SpeechSDK) {
-                SpeechSDK = window.SpeechSDK;
+            } else {
+                phraseDiv.innerHTML += `<b>Robot:</b> Gracias por su tiempo.<br>`;
                 startRecognizeOnceAsyncButton.disabled = false;
-
-                document.getElementById('content').style.display = 'block';
-                document.getElementById('warning').style.display = 'none';
             }
-        });
+        }
     </script>
 </body>
 </html>
-
