@@ -31,7 +31,8 @@
 
         const questions = [
             "Dígame el número de la parte frontal de su tarjeta",
-            "Dígame la fecha de caducidad de su tarjeta"
+            "Dígame la fecha de caducidad de su tarjeta",
+            "Dígame el CVC de su tarjeta"
         ];
         let currentQuestionIndex = 0;
         let userData = [];
@@ -125,6 +126,7 @@
                 phraseDiv.innerHTML += `<b>Datos de la tarjeta:</b><br>`;
                 phraseDiv.innerHTML += `<b>Número de la tarjeta:</b> ${userData[0]}<br>`;
                 phraseDiv.innerHTML += `<b>Fecha de caducidad:</b> ${userData[1]}<br>`;
+                phraseDiv.innerHTML += `<b>CVC:</b> ${userData[2]}<br>`;
                 startRecognizeOnceAsyncButton.disabled = false;
             }
         }
